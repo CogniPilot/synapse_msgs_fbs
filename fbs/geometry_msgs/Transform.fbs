@@ -1,0 +1,6 @@
+table Transform {
+  translation:Vector3;
+  rotation:Quaternion;
+}
+
+root_type Transform;

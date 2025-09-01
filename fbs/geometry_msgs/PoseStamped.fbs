@@ -1,0 +1,8 @@
+include "std_msgs/Header.fbs";
+
+table PoseStamped {
+  header:std_msgs.Header;
+  pose:Pose;
+}
+
+root_type PoseStamped;

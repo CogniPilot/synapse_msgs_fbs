@@ -1,0 +1,7 @@
+table Point32 {
+  x:float;
+  y:float;
+  z:float;
+}
+
+root_type Point32;

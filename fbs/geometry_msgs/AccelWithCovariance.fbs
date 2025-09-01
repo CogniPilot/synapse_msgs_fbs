@@ -1,0 +1,6 @@
+table AccelWithCovariance {
+  accel:Accel;
+  covariance:[double];
+}
+
+root_type AccelWithCovariance;

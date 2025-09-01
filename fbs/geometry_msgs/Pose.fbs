@@ -1,0 +1,6 @@
+table Pose {
+  position:Point;
+  orientation:Quaternion;
+}
+
+root_type Pose;

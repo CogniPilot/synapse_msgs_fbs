@@ -1,0 +1,8 @@
+include "std_msgs/Header.fbs";
+
+table PoseArray {
+  header:std_msgs.Header;
+  poses:[Pose];
+}
+
+root_type PoseArray;

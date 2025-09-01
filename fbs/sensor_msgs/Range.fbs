@@ -1,0 +1,16 @@
+include "std_msgs/Header.fbs";
+
+const ULTRASOUND:ubyte = 0;
+const INFRARED:ubyte = 1;
+
+table Range {
+  header:std_msgs.Header;
+  radiation_type:ubyte;
+  field_of_view:float;
+  min_range:float;
+  max_range:float;
+  range:float;
+  variance:float;
+}
+
+root_type Range;

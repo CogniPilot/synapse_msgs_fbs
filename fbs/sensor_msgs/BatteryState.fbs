@@ -1,0 +1,46 @@
+include "std_msgs/Header.fbs";
+
+const POWER_SUPPLY_STATUS_UNKNOWN:ubyte = 0;
+const POWER_SUPPLY_STATUS_CHARGING:ubyte = 1;
+const POWER_SUPPLY_STATUS_DISCHARGING:ubyte = 2;
+const POWER_SUPPLY_STATUS_NOT_CHARGING:ubyte = 3;
+const POWER_SUPPLY_STATUS_FULL:ubyte = 4;
+const POWER_SUPPLY_HEALTH_UNKNOWN:ubyte = 0;
+const POWER_SUPPLY_HEALTH_GOOD:ubyte = 1;
+const POWER_SUPPLY_HEALTH_OVERHEAT:ubyte = 2;
+const POWER_SUPPLY_HEALTH_DEAD:ubyte = 3;
+const POWER_SUPPLY_HEALTH_OVERVOLTAGE:ubyte = 4;
+const POWER_SUPPLY_HEALTH_UNSPEC_FAILURE:ubyte = 5;
+const POWER_SUPPLY_HEALTH_COLD:ubyte = 6;
+const POWER_SUPPLY_HEALTH_WATCHDOG_TIMER_EXPIRE:ubyte = 7;
+const POWER_SUPPLY_HEALTH_SAFETY_TIMER_EXPIRE:ubyte = 8;
+const POWER_SUPPLY_TECHNOLOGY_UNKNOWN:ubyte = 0;
+const POWER_SUPPLY_TECHNOLOGY_NIMH:ubyte = 1;
+const POWER_SUPPLY_TECHNOLOGY_LION:ubyte = 2;
+const POWER_SUPPLY_TECHNOLOGY_LIPO:ubyte = 3;
+const POWER_SUPPLY_TECHNOLOGY_LIFE:ubyte = 4;
+const POWER_SUPPLY_TECHNOLOGY_NICD:ubyte = 5;
+const POWER_SUPPLY_TECHNOLOGY_LIMN:ubyte = 6;
+const POWER_SUPPLY_TECHNOLOGY_TERNARY:ubyte = 7;
+const POWER_SUPPLY_TECHNOLOGY_VRLA:ubyte = 8;
+
+table BatteryState {
+  header:std_msgs.Header;
+  voltage:float;
+  temperature:float;
+  current:float;
+  charge:float;
+  capacity:float;
+  design_capacity:float;
+  percentage:float;
+  power_supply_status:ubyte;
+  power_supply_health:ubyte;
+  power_supply_technology:ubyte;
+  present:bool;
+  cell_voltage:[float];
+  cell_temperature:[float];
+  location:[ubyte:64];
+  serial_number:[ubyte:64];
+}
+
+root_type BatteryState;

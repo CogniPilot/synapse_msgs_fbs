@@ -1,0 +1,9 @@
+include "std_msgs/Header.fbs";
+
+table Temperature {
+  header:std_msgs.Header;
+  temperature:double;
+  variance:double;
+}
+
+root_type Temperature;

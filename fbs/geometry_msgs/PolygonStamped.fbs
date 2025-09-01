@@ -1,0 +1,8 @@
+include "std_msgs/Header.fbs";
+
+table PolygonStamped {
+  header:std_msgs.Header;
+  polygon:Polygon;
+}
+
+root_type PolygonStamped;

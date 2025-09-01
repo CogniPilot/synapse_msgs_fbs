@@ -1,0 +1,8 @@
+include "geometry_msgs/Polygon.fbs";
+
+table PolygonInstance {
+  polygon:geometry_msgs.Polygon;
+  id:long;
+}
+
+root_type PolygonInstance;

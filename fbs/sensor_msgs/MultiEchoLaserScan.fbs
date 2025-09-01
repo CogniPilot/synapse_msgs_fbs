@@ -1,0 +1,16 @@
+include "std_msgs/Header.fbs";
+
+table MultiEchoLaserScan {
+  header:std_msgs.Header;
+  angle_min:float;
+  angle_max:float;
+  angle_increment:float;
+  time_increment:float;
+  scan_time:float;
+  range_min:float;
+  range_max:float;
+  ranges:[LaserEcho];
+  intensities:[LaserEcho];
+}
+
+root_type MultiEchoLaserScan;

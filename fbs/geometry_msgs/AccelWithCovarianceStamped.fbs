@@ -1,0 +1,8 @@
+include "std_msgs/Header.fbs";
+
+table AccelWithCovarianceStamped {
+  header:std_msgs.Header;
+  accel:AccelWithCovariance;
+}
+
+root_type AccelWithCovarianceStamped;

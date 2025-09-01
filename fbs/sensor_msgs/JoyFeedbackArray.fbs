@@ -1,0 +1,5 @@
+table JoyFeedbackArray {
+  array:[JoyFeedback];
+}
+
+root_type JoyFeedbackArray;

@@ -1,0 +1,10 @@
+include "builtin_interfaces/Time.fbs";
+include "std_msgs/Header.fbs";
+
+table TimeReference {
+  header:std_msgs.Header;
+  time_ref:builtin_interfaces.Time;
+  source:[ubyte:64];
+}
+
+root_type TimeReference;

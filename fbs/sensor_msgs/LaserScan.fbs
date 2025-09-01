@@ -1,0 +1,16 @@
+include "std_msgs/Header.fbs";
+
+table LaserScan {
+  header:std_msgs.Header;
+  angle_min:float;
+  angle_max:float;
+  angle_increment:float;
+  time_increment:float;
+  scan_time:float;
+  range_min:float;
+  range_max:float;
+  ranges:[float];
+  intensities:[float];
+}
+
+root_type LaserScan;

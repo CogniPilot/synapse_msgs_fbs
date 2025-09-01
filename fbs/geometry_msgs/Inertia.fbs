@@ -1,0 +1,14 @@
+include "geometry_msgs/Vector3.fbs";
+
+table Inertia {
+  m:double;
+  com:geometry_msgs.Vector3;
+  ixx:double;
+  ixy:double;
+  ixz:double;
+  iyy:double;
+  iyz:double;
+  izz:double;
+}
+
+root_type Inertia;

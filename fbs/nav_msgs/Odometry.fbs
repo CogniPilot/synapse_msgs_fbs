@@ -1,0 +1,12 @@
+include "geometry_msgs/PoseWithCovariance.fbs";
+include "geometry_msgs/TwistWithCovariance.fbs";
+include "std_msgs/Header.fbs";
+
+table Odometry {
+  header:std_msgs.Header;
+  child_frame_id:[ubyte:64];
+  pose:geometry_msgs.PoseWithCovariance;
+  twist:geometry_msgs.TwistWithCovariance;
+}
+
+root_type Odometry;

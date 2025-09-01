@@ -1,0 +1,6 @@
+table TwistWithCovariance {
+  twist:Twist;
+  covariance:[double];
+}
+
+root_type TwistWithCovariance;

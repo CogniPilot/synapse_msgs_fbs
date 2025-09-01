@@ -1,0 +1,6 @@
+table Wrench {
+  force:Vector3;
+  torque:Vector3;
+}
+
+root_type Wrench;

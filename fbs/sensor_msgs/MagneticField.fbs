@@ -1,0 +1,10 @@
+include "geometry_msgs/Vector3.fbs";
+include "std_msgs/Header.fbs";
+
+table MagneticField {
+  header:std_msgs.Header;
+  magnetic_field:geometry_msgs.Vector3;
+  magnetic_field_covariance:[double];
+}
+
+root_type MagneticField;

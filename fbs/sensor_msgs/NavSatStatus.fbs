@@ -1,0 +1,17 @@
+const STATUS_UNKNOWN:byte = -2;
+const STATUS_NO_FIX:byte = -1;
+const STATUS_FIX:byte = 0;
+const STATUS_SBAS_FIX:byte = 1;
+const STATUS_GBAS_FIX:byte = 2;
+const SERVICE_UNKNOWN:ushort = 0;
+const SERVICE_GPS:ushort = 1;
+const SERVICE_GLONASS:ushort = 2;
+const SERVICE_COMPASS:ushort = 4;
+const SERVICE_GALILEO:ushort = 8;
+
+table NavSatStatus {
+  status:byte;
+  service:ushort;
+}
+
+root_type NavSatStatus;

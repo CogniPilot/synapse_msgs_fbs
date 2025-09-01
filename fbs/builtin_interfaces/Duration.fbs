@@ -1,0 +1,6 @@
+table Duration {
+  sec:int;
+  nanosec:uint;
+}
+
+root_type Duration;

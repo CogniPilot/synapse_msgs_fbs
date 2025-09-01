@@ -1,0 +1,8 @@
+include "std_msgs/Header.fbs";
+
+table QuaternionStamped {
+  header:std_msgs.Header;
+  quaternion:Quaternion;
+}
+
+root_type QuaternionStamped;

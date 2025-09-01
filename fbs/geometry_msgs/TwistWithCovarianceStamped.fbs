@@ -1,0 +1,8 @@
+include "std_msgs/Header.fbs";
+
+table TwistWithCovarianceStamped {
+  header:std_msgs.Header;
+  twist:TwistWithCovariance;
+}
+
+root_type TwistWithCovarianceStamped;
