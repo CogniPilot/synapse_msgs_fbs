@@ -1,8 +1,0 @@
-include "std_msgs/Header.fbs";
-
-table Vector3Stamped {
-  header:std_msgs.Header;
-  vector:Vector3;
-}
-
-root_type Vector3Stamped;

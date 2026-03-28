@@ -1,9 +1,0 @@
-include "std_msgs/Header.fbs";
-
-table RelativeHumidity {
-  header:std_msgs.Header;
-  relative_humidity:double;
-  variance:double;
-}
-
-root_type RelativeHumidity;

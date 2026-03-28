@@ -1,8 +1,0 @@
-include "std_msgs/Header.fbs";
-
-table AccelStamped {
-  header:std_msgs.Header;
-  accel:Accel;
-}
-
-root_type AccelStamped;

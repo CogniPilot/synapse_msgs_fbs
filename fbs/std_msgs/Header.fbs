@@ -1,8 +1,0 @@
-include "builtin_interfaces/Time.fbs";
-
-table Header {
-  stamp:builtin_interfaces.Time;
-  frame_id:[ubyte:64];
-}
-
-root_type Header;

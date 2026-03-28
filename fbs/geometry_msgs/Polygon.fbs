@@ -1,5 +1,0 @@
-table Polygon {
-  points:[Point32];
-}
-
-root_type Polygon;

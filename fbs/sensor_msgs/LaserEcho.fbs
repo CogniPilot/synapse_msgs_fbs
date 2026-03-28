@@ -1,5 +1,0 @@
-table LaserEcho {
-  echoes:[float];
-}
-
-root_type LaserEcho;

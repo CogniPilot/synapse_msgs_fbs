@@ -1,9 +1,0 @@
-include "std_msgs/Header.fbs";
-
-table TransformStamped {
-  header:std_msgs.Header;
-  child_frame_id:[ubyte:64];
-  transform:Transform;
-}
-
-root_type TransformStamped;

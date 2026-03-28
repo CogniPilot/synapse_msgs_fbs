@@ -1,9 +1,0 @@
-include "std_msgs/Header.fbs";
-
-table Joy {
-  header:std_msgs.Header;
-  axes:[float];
-  buttons:[int];
-}
-
-root_type Joy;

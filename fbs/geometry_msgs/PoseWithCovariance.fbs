@@ -1,6 +1,0 @@
-table PoseWithCovariance {
-  pose:Pose;
-  covariance:[double];
-}
-
-root_type PoseWithCovariance;

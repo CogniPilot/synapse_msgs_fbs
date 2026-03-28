@@ -1,8 +1,0 @@
-include "std_msgs/Header.fbs";
-
-table TwistStamped {
-  header:std_msgs.Header;
-  twist:Twist;
-}
-
-root_type TwistStamped;

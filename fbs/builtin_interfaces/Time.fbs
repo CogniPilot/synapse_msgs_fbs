@@ -1,6 +1,0 @@
-table Time {
-  sec:int;
-  nanosec:uint;
-}
-
-root_type Time;

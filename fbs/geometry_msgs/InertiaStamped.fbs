@@ -1,8 +1,0 @@
-include "std_msgs/Header.fbs";
-
-table InertiaStamped {
-  header:std_msgs.Header;
-  inertia:Inertia;
-}
-
-root_type InertiaStamped;

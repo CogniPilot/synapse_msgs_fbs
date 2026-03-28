@@ -1,6 +1,0 @@
-table ChannelFloat32 {
-  name:[ubyte:64];
-  values:[float];
-}
-
-root_type ChannelFloat32;

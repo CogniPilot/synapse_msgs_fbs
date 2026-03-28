@@ -1,8 +1,0 @@
-table Quaternion {
-  x:double;
-  y:double;
-  z:double;
-  w:double;
-}
-
-root_type Quaternion;

@@ -1,245 +1,224 @@
-import argparse
-import os
-import re
+#!/usr/bin/env python3
 
-# Mapping from ROS primitive types to FlatBuffers scalar types.
-# ROS `char` is a special case, treated as `uint8`.
-ROS_TO_FBS_TYPE_MAP = {
-    'bool': 'bool',
-    'byte': 'byte',
-    'char': 'ubyte',
-    'int8': 'byte',
-    'uint8': 'ubyte',
-    'int16': 'short',
-    'uint16': 'ushort',
-    'int32': 'int',
-    'uint32': 'uint',
-    'int64': 'long',
-    'uint64': 'ulong',
-    'float32': 'float',
-    'float64': 'double',
-    'string': '[ubyte:64]',
-    # ROS time/duration types can be represented as 64-bit integers.
-    # A common practice is to store total nanoseconds.
-    'time': 'uint64',
-    'duration': 'int64',
+import argparse
+import re
+from dataclasses import dataclass
+from pathlib import Path
+
+
+SCALAR_TO_ROS = {
+    "bool": "bool",
+    "byte": "int8",
+    "ubyte": "uint8",
+    "short": "int16",
+    "ushort": "uint16",
+    "int": "int32",
+    "uint": "uint32",
+    "long": "int64",
+    "ulong": "uint64",
+    "float": "float32",
+    "double": "float64",
+    "string": "string",
 }
 
-def convert_ros_type_to_fbs(ros_type):
-    """
-    Converts a ROS message field type to its FlatBuffers equivalent.
+REPO_ROOT = Path(__file__).resolve().parent
 
-    Args:
-        ros_type (str): The ROS type (e.g., 'int32', 'string[]', 'geometry_msgs/Point').
 
-    Returns:
-        tuple: A tuple containing the FlatBuffers type (str) and a boolean indicating if it's an array.
-    """
-    # Check for array types, including fixed-size arrays (e.g., uint8[16])
-    is_array = ros_type.endswith(']')
-    base_type = re.sub(r'\[.*\]', '', ros_type)
+@dataclass(frozen=True)
+class Definition:
+    kind: str
+    name: str
+    namespace: str
+    source: Path
+    members: list[tuple[str, str]]
 
-    # Map the base type to its FlatBuffers equivalent
-    if base_type in ROS_TO_FBS_TYPE_MAP:
-        fbs_type = ROS_TO_FBS_TYPE_MAP[base_type]
-    else:
-        # This is a nested message type. Convert ROS's 'package/Msg' to
-        # FlatBuffers' 'package.Msg' for namespaced access.
-        fbs_type = base_type.replace('/', '.')
+    @property
+    def qname(self) -> str:
+        return f"{self.namespace}.{self.name}"
 
-    return fbs_type, is_array
+    @property
+    def package(self) -> str:
+        return self.namespace.split(".")[0]
 
-def parse_msg_file(msg_path):
-    """
-    Parses a .msg file to extract its name, fields, constants, and dependencies.
 
-    Args:
-        msg_path (str): The path to the input .msg file.
+COMMENT_BLOCK_RE = re.compile(r"/\*.*?\*/", re.DOTALL)
+COMMENT_LINE_RE = re.compile(r"//.*?$", re.MULTILINE)
+NAMESPACE_RE = re.compile(r"namespace\s+([A-Za-z0-9_.]+)\s*;")
+DEFINITION_RE = re.compile(r"(struct|table|union)\s+([A-Za-z0-9_]+)\s*\{(.*?)\}", re.DOTALL)
 
-    Returns:
-        tuple: A tuple containing the message name, a list of fields, a list of
-               constants, and a list of dependencies (other .fbs files).
-    """
-    fields = []
-    constants = []
-    dependencies = set()
-    msg_name = os.path.splitext(os.path.basename(msg_path))[0]
 
-    with open(msg_path, 'r') as f:
-        for line in f:
-            # Remove comments and strip whitespace
-            line = line.split('#', 1)[0].strip()
-            if not line:
-                continue
+def strip_comments(text: str) -> str:
+    return COMMENT_LINE_RE.sub("", COMMENT_BLOCK_RE.sub("", text))
 
-            # Check for constant definitions (e.g., "uint8 FOO=1")
-            if '=' in line:
-                parts = line.split('=', 1)
-                type_name_part = parts[0].strip().split()
-                const_type, const_name = type_name_part[0], type_name_part[1]
-                const_value = parts[1].strip()
-                constants.append((const_type, const_name, const_value))
-            else:
-                # This is a field definition
-                parts = line.split()
-                if len(parts) < 2:
-                    continue
-                ros_type, field_name = parts[0], parts[1]
-                
-                # Identify dependencies on other message packages
-                base_type = re.sub(r'\[.*\]', '', ros_type)
-                if '/' in base_type:
-                    # e.g., 'std_msgs/Header' becomes a dependency on 'std_msgs/Header.fbs'
-                    dependency_file = base_type + '.fbs'
-                    dependencies.add(dependency_file)
 
-                fields.append((ros_type, field_name))
+def snake_case(name: str) -> str:
+    return re.sub(r"(?<!^)(?=[A-Z])", "_", name).lower()
 
-    return msg_name, fields, constants, sorted(list(dependencies))
 
-def generate_fbs_content(msg_name, fields, constants, dependencies, namespace):
-    """
-    Generates the string content for the .fbs schema file.
-    """
-    content = []
+def upper_snake(name: str) -> str:
+    return snake_case(name).upper()
 
-    # Add include statements for dependencies
-    for dep in dependencies:
-        content.append(f'include "{dep}";')
-    if dependencies:
-        content.append('')
 
-    # Add namespace declaration
-    if namespace:
-        content.append(f'namespace {namespace};')
-        content.append('')
+def parse_struct_or_table(body: str) -> list[tuple[str, str]]:
+    members: list[tuple[str, str]] = []
+    for statement in body.split(";"):
+        statement = statement.strip()
+        if not statement:
+            continue
+        field = statement.split("=", 1)[0].split("(", 1)[0].strip()
+        name, type_name = [part.strip() for part in field.split(":", 1)]
+        members.append((name, type_name))
+    return members
 
-    # Add constants. For simplicity, each constant is defined directly.
-    # A more advanced approach could group them into enums.
-    for const_type, const_name, const_value in constants:
-        fbs_type, _ = convert_ros_type_to_fbs(const_type)
-        content.append(f'const {const_name}:{fbs_type} = {const_value};')
-    if constants:
-        content.append('')
-    
-    # Define the main table for the message
-    content.append(f'table {msg_name} {{')
-    for ros_type, field_name in fields:
-        fbs_type, is_array = convert_ros_type_to_fbs(ros_type)
-        if is_array:
-            content.append(f'  {field_name}:[{fbs_type}];')
+
+def parse_union(body: str) -> list[tuple[str, str]]:
+    members: list[tuple[str, str]] = []
+    for entry in body.split(","):
+        entry = entry.strip()
+        if not entry:
+            continue
+        members.append((snake_case(entry.split(".")[-1]), entry))
+    return members
+
+
+def parse_fbs_file(path: Path) -> list[Definition]:
+    text = strip_comments(path.read_text())
+    namespace_match = NAMESPACE_RE.search(text)
+    if not namespace_match:
+        raise ValueError(f"{path} is missing a namespace declaration")
+    namespace = namespace_match.group(1)
+
+    definitions: list[Definition] = []
+    for kind, name, body in DEFINITION_RE.findall(text):
+        if kind == "union":
+            members = parse_union(body)
         else:
-            content.append(f'  {field_name}:{fbs_type};')
-    content.append('}')
-    content.append('')
-
-    # Add the root_type declaration
-    content.append(f'root_type {msg_name};')
-    
-    return '\n'.join(content)
-
-def find_files(folder_path, file_extension):
-    """
-    Finds all files with a given extension in a folder and its subfolders.
-
-    Args:
-        folder_path (str): The absolute or relative path to the folder to search.
-        file_extension (str): The file extension to search for (e.g., '.txt', '.py').
-
-    Returns:
-        list: A list of full paths to the files found.
-              Returns an empty list if the folder doesn't exist or no files are found.
-    """
-    # Ensure the file extension starts with a dot
-    if not file_extension.startswith('.'):
-        file_extension = '.' + file_extension
-
-    found_files = []
-    
-    # Check if the provided path is a valid directory
-    if not os.path.isdir(folder_path):
-        print(f"Error: The folder path '{folder_path}' does not exist or is not a directory.")
-        return found_files
-
-    # os.walk() recursively traverses the directory tree
-    for root, dirs, files in os.walk(folder_path):
-        for filename in files:
-            # Check if the file ends with the specified extension
-            if filename.endswith(file_extension):
-                # Construct the full path and add it to our list
-                full_path = os.path.join(root, filename)
-                found_files.append(full_path)
-                
-    return found_files
+            members = parse_struct_or_table(body)
+        definitions.append(
+            Definition(kind=kind, name=name, namespace=namespace, source=path, members=members)
+        )
+    return definitions
 
 
-def main():
-    """Main function to parse arguments and run the conversion."""
+def load_definitions(schema_root: Path) -> list[Definition]:
+    definitions: list[Definition] = []
+    for path in sorted(schema_root.rglob("*.fbs")):
+        definitions.extend(parse_fbs_file(path))
+    return definitions
+
+
+def resolve_type(type_name: str, current: Definition, qname_map: dict[str, Definition]) -> str:
+    if type_name.startswith("[") and type_name.endswith("]"):
+        inner = type_name[1:-1].strip()
+        if ":" in inner:
+            base, length = [part.strip() for part in inner.split(":", 1)]
+            return f"{resolve_type(base, current, qname_map)}[{length}]"
+        return f"{resolve_type(inner, current, qname_map)}[]"
+
+    if type_name in SCALAR_TO_ROS:
+        return SCALAR_TO_ROS[type_name]
+
+    if "." in type_name:
+        qname = type_name
+    else:
+        qname = f"{current.namespace}.{type_name}"
+        if qname not in qname_map:
+            matches = [candidate for candidate in qname_map if candidate.endswith(f".{type_name}")]
+            if len(matches) != 1:
+                raise ValueError(f"cannot resolve type {type_name} from {current.qname}")
+            qname = matches[0]
+
+    target = qname_map[qname]
+    if target.package == current.package:
+        return target.name
+    return f"{target.package}/{target.name}"
+
+
+def render_definition(definition: Definition, qname_map: dict[str, Definition]) -> str:
+    source_path = definition.source
+    try:
+        source_hint = source_path.relative_to(REPO_ROOT).as_posix()
+    except ValueError:
+        source_hint = source_path.as_posix()
+
+    lines = [
+        f"# Generated from {source_hint} by convert_fbs.py.",
+        "# Do not edit by hand.",
+        "",
+    ]
+
+    if definition.kind == "union":
+        lines.append("uint8 NONE=0")
+        for index, (_, type_name) in enumerate(definition.members, start=1):
+            constant = upper_snake(type_name.split(".")[-1])
+            lines.append(f"uint8 {constant}={index}")
+        lines.append("uint8 type")
+        for field_name, type_name in definition.members:
+            lines.append(f"{resolve_type(type_name, definition, qname_map)} {field_name}")
+        lines.append("")
+        return "\n".join(lines)
+
+    for field_name, type_name in definition.members:
+        lines.append(f"{resolve_type(type_name, definition, qname_map)} {field_name}")
+    lines.append("")
+    return "\n".join(lines)
+
+
+def write_messages(definitions: list[Definition], output_root: Path, clean: bool) -> None:
+    qname_map = {definition.qname: definition for definition in definitions}
+    packages = sorted({definition.package for definition in definitions})
+
+    if clean:
+        for package in packages:
+            msg_dir = output_root / package / "msg"
+            if msg_dir.exists():
+                for path in msg_dir.glob("*.msg"):
+                    path.unlink()
+
+    for definition in definitions:
+        msg_dir = output_root / definition.package / "msg"
+        msg_dir.mkdir(parents=True, exist_ok=True)
+        msg_path = msg_dir / f"{definition.name}.msg"
+        msg_path.write_text(render_definition(definition, qname_map))
+
+
+def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(
-        description='Convert a ROS .msg file to a FlatBuffers .fbs schema.',
-        formatter_class=argparse.RawTextHelpFormatter
+        description="Generate minimal ROS .msg files from FlatBuffer schemas."
     )
-    parser.add_argument('interface_folder', help='Path to the input ROS interface folder.')
     parser.add_argument(
-        '-o', '--output',
-        help='Path for the output .fbs files.\n(default: creates .fbs file in a root fbs directory structure adjacent the interface folder)'
+        "schema_root",
+        nargs="?",
+        default="fbs/cerebri2",
+        help="directory containing the active .fbs schemas",
     )
-    parser.add_argument('-e', '--extension', default=".msg", help="The file extension to look for (e.g., '.msg', '.srv', '.action').")
     parser.add_argument(
-        '-n', '--namespace',
-        help='Namespace for the generated schema.\n(default: inferred from the parent directory of the "msg" folder)'
+        "-o",
+        "--output",
+        default="msg",
+        help="output root for generated ROS message packages",
     )
-    
-    args = parser.parse_args()
+    parser.add_argument(
+        "--clean",
+        action="store_true",
+        help="remove existing generated .msg files in affected packages before writing",
+    )
+    return parser.parse_args()
 
-    
-    interface_file_list = find_files(args.interface_folder, args.extension)
 
-    for interface_file in interface_file_list:
+def main() -> int:
+    args = parse_args()
+    schema_root = Path(args.schema_root).resolve()
+    if not schema_root.is_dir():
+        raise SystemExit(f"schema root does not exist: {schema_root}")
 
-        # Determine the output path if not specified
-        output_path = args.output
-        if not output_path:
-            base_name = os.path.splitext(interface_file)[0].replace("/msg/", "/fbs/", 1).replace("/msg/", "/")
-            output_path = os.path.dirname(interface_file).replace("/msg/", "/fbs/", 1).replace("/msg/", "/")
-            output_file = f'{base_name}.fbs'
-            
-        
+    definitions = load_definitions(schema_root)
+    if not definitions:
+        raise SystemExit(f"no .fbs files found under {schema_root}")
 
-        # Attempt to infer the namespace from the file path if not specified
-        namespace = args.namespace
-        if not namespace:
-            # Path might be /path/to/ros_ws/src/my_package/msg/MyMessage.msg
-            # We want to extract 'my_package'
-            try:
-                # Normalize path separators
-                norm_path = os.path.normpath(interface_file)
-                path_parts = norm_path.split(os.sep)
-                # Find the 'msg' directory and get its parent
-                msg_index = path_parts.index('msg')
-                if msg_index > 0:
-                    namespace = path_parts[msg_index - 1]
-            except (ValueError, IndexError):
-                # 'msg' not in path, cannot infer namespace
-                pass
+    write_messages(definitions, Path(args.output).resolve(), clean=args.clean)
+    return 0
 
-        try:
-            if not os.path.exists(output_path):
-                os.makedirs(output_path)
-                print(f"Successfully created directory: '{output_path}'")
 
-            msg_name, fields, constants, dependencies = parse_msg_file(interface_file)
-            fbs_content = generate_fbs_content(msg_name, fields, constants, dependencies, namespace)
-
-            with open(output_file, 'w') as f:
-                f.write(fbs_content)
-            
-            print(f"✅ Successfully converted '{interface_file}' to '{output_file}'")
-
-        except FileNotFoundError:
-            print(f"❌ Error: Input file not found at '{interface_file}'")
-        except Exception as e:
-            print(f"❌ An unexpected error occurred: {e}")
-
-if __name__ == '__main__':
-    main()
+if __name__ == "__main__":
+    raise SystemExit(main())

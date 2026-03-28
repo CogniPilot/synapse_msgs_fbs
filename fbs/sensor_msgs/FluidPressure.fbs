@@ -1,9 +1,0 @@
-include "std_msgs/Header.fbs";
-
-table FluidPressure {
-  header:std_msgs.Header;
-  fluid_pressure:double;
-  variance:double;
-}
-
-root_type FluidPressure;

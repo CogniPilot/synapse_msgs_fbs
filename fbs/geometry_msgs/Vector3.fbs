@@ -1,7 +1,0 @@
-table Vector3 {
-  x:double;
-  y:double;
-  z:double;
-}
-
-root_type Vector3;

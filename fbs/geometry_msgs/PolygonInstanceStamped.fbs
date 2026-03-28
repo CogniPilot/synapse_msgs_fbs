@@ -1,9 +1,0 @@
-include "geometry_msgs/PolygonInstance.fbs";
-include "std_msgs/Header.fbs";
-
-table PolygonInstanceStamped {
-  header:std_msgs.Header;
-  polygon:geometry_msgs.PolygonInstance;
-}
-
-root_type PolygonInstanceStamped;

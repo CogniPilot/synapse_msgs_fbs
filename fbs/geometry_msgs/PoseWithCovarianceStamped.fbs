@@ -1,8 +1,0 @@
-include "std_msgs/Header.fbs";
-
-table PoseWithCovarianceStamped {
-  header:std_msgs.Header;
-  pose:PoseWithCovariance;
-}
-
-root_type PoseWithCovarianceStamped;
