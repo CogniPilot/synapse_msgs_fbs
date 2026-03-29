@@ -8,12 +8,14 @@ required by the `cerebri2` firmware and log pipeline:
 
 - `fbs/cerebri2/cerebri2_topics.fbs`
 - `fbs/cerebri2/cerebri2_log.fbs`
+- `fbs/cerebri2/cerebri2_sil.fbs`
 - `msg/cerebri2/msg/*.msg`
 
 The scope is deliberately small:
 
 - live topic payloads for diagnostics and tooling
 - self-describing log envelopes for SD-card logging
+- native-sim SITL input payloads
 - no legacy ROS package mirror
 
 Regenerate the ROS `.msg` files from the FlatBuffer schemas with:
