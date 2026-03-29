@@ -1,0 +1,15 @@
+include "cerebri_topics.fbs";
+
+namespace cerebri.sil;
+
+table SimInput {
+  gyro:cerebri.topic.Vec3f;
+  accel:cerebri.topic.Vec3f;
+  rc:cerebri.topic.RcChannels16;
+  rc_link_quality:ubyte;
+  rc_valid:bool;
+  imu_valid:bool;
+}
+
+root_type SimInput;
+file_identifier "C2SI";

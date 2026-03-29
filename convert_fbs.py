@@ -189,7 +189,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument(
         "schema_root",
         nargs="?",
-        default="fbs/cerebri2",
+        default="fbs/cerebri",
         help="directory containing the active .fbs schemas",
     )
     parser.add_argument(

@@ -1,4 +1,4 @@
-# Generated from fbs/cerebri2/cerebri2_topics.fbs by convert_fbs.py.
+# Generated from fbs/cerebri/cerebri_topics.fbs by convert_fbs.py.
 # Do not edit by hand.
 
 int64 rc_stamp_ms

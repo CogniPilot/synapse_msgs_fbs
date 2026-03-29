@@ -1,4 +1,4 @@
-# Generated from fbs/cerebri2/cerebri2_sil.fbs by convert_fbs.py.
+# Generated from fbs/cerebri/cerebri_sil.fbs by convert_fbs.py.
 # Do not edit by hand.
 
 Vec3f gyro

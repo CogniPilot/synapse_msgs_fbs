@@ -1,6 +1,6 @@
-include "cerebri2_topics.fbs";
+include "cerebri_topics.fbs";
 
-namespace cerebri2.log;
+namespace cerebri.log;
 
 table SchemaRecord {
   name:string;
@@ -9,12 +9,12 @@ table SchemaRecord {
 
 table FlightSnapshotRecord {
   monotonic_us:ulong;
-  payload:cerebri2.topic.FlightSnapshot;
+  payload:cerebri.topic.FlightSnapshot;
 }
 
 table MotorOutputRecord {
   monotonic_us:ulong;
-  payload:cerebri2.topic.MotorOutput;
+  payload:cerebri.topic.MotorOutput;
 }
 
 union RecordPayload {

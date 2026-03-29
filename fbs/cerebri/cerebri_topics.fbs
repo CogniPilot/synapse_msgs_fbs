@@ -1,4 +1,4 @@
-namespace cerebri2.topic;
+namespace cerebri.topic;
 
 struct Vec3f {
   x:float;
