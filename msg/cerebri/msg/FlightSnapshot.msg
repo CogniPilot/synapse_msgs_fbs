@@ -5,5 +5,7 @@ Vec3f gyro
 Vec3f accel
 RcChannels16 rc
 ControlStatus status
+AttitudeEuler attitude
+AttitudeEuler attitude_desired
 RateTriplet rate_desired
 RateTriplet rate_cmd
