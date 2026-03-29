@@ -1,4 +1,4 @@
-# Generated from fbs/cerebri/cerebri_log.fbs by convert_fbs.py.
+# Generated from fbs/synapse/synapse_log.fbs by convert_fbs.py.
 # Do not edit by hand.
 
 uint8 NONE=0

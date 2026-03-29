@@ -1,4 +1,4 @@
-namespace cerebri.topic;
+namespace synapse.topic;
 
 struct Vec3f {
   x:float;
@@ -7,6 +7,12 @@ struct Vec3f {
 }
 
 struct RateTriplet {
+  roll:float;
+  pitch:float;
+  yaw:float;
+}
+
+struct AttitudeEuler {
   roll:float;
   pitch:float;
   yaw:float;
@@ -35,6 +41,7 @@ struct ControlStatus {
   rc_stamp_ms:long;
   throttle_us:int;
   rc_link_quality:ubyte;
+  flight_mode:ubyte;
   armed:bool;
   rc_valid:bool;
   rc_stale:bool;
@@ -61,6 +68,8 @@ table FlightSnapshot {
   accel:Vec3f;
   rc:RcChannels16;
   status:ControlStatus;
+  attitude:AttitudeEuler;
+  attitude_desired:AttitudeEuler;
   rate_desired:RateTriplet;
   rate_cmd:RateTriplet;
 }

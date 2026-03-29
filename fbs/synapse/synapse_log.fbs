@@ -1,6 +1,6 @@
-include "cerebri_topics.fbs";
+include "synapse_topics.fbs";
 
-namespace cerebri.log;
+namespace synapse.log;
 
 table SchemaRecord {
   name:string;
@@ -9,12 +9,12 @@ table SchemaRecord {
 
 table FlightSnapshotRecord {
   monotonic_us:ulong;
-  payload:cerebri.topic.FlightSnapshot;
+  payload:synapse.topic.FlightSnapshot;
 }
 
 table MotorOutputRecord {
   monotonic_us:ulong;
-  payload:cerebri.topic.MotorOutput;
+  payload:synapse.topic.MotorOutput;
 }
 
 union RecordPayload {
@@ -28,4 +28,4 @@ table LogRecord {
 }
 
 root_type LogRecord;
-file_identifier "C2LG";
+file_identifier "SYLG";
