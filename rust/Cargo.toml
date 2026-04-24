@@ -1,0 +1,10 @@
+[package]
+name = "synapse_msgs_fbs"
+version = "0.1.0"
+edition = "2024"
+description = "Generated Rust FlatBuffers bindings for Synapse message schemas"
+license = "MIT OR Apache-2.0"
+repository = "https://github.com/CogniPilot/synapse_msgs_fbs"
+
+[dependencies]
+flatbuffers = "25.12.19"

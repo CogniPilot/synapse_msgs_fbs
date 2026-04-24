@@ -1,0 +1,19 @@
+[build-system]
+requires = ["setuptools>=69", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "synapse-msgs-fbs"
+version = "0.1.0"
+description = "Generated Python FlatBuffers bindings for Synapse message schemas"
+readme = "README.md"
+requires-python = ">=3.9"
+license = "MIT OR Apache-2.0"
+dependencies = ["flatbuffers>=25"]
+
+[project.urls]
+Repository = "https://github.com/CogniPilot/synapse_msgs_fbs"
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["synapse*"]

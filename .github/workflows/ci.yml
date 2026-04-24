@@ -1,0 +1,54 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches:
+      - "**"
+    tags-ignore:
+      - "v*"
+
+jobs:
+  bindings:
+    name: Bindings
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - uses: ros-tooling/setup-ros@v0.7
+        with:
+          required-ros-distributions: jazzy
+      - name: Regenerate bindings
+        run: ./scripts/generate_bindings.sh
+      - name: Check generated files are current
+        run: |
+          git diff --exit-code
+          test -z "$(git status --porcelain)"
+      - name: Build ROS interface package
+        run: |
+          source /opt/ros/jazzy/setup.bash
+          colcon --log-base /tmp/synapse-msgs-fbs-colcon/log build \
+            --base-paths ros \
+            --packages-select synapse_msgs \
+            --build-base /tmp/synapse-msgs-fbs-colcon/build \
+            --install-base /tmp/synapse-msgs-fbs-colcon/install
+      - name: Check Rust package
+        run: cargo test --manifest-path rust/Cargo.toml
+      - name: Build Python package
+        run: |
+          python -m pip install --upgrade pip build
+          python -m build python
+      - name: Smoke-test Python imports
+        run: |
+          python -m venv /tmp/synapse-msgs-fbs
+          /tmp/synapse-msgs-fbs/bin/python -m pip install python/dist/*.whl
+          /tmp/synapse-msgs-fbs/bin/python - <<'PY'
+          from synapse.topic.MocapFrame import MocapFrame
+          from synapse.log.LogRecord import LogRecord
+          from synapse.sil.SimInput import SimInput
+
+          print(MocapFrame.__name__, LogRecord.__name__, SimInput.__name__)
+          PY

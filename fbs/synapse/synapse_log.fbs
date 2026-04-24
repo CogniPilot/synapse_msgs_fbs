@@ -1,3 +1,4 @@
+include "synapse_mocap.fbs";
 include "synapse_topics.fbs";
 
 namespace synapse.log;
@@ -17,10 +18,22 @@ table MotorOutputRecord {
   payload:synapse.topic.MotorOutput;
 }
 
+table MocapDefinitionRecord {
+  monotonic_us:ulong;
+  payload:synapse.topic.MocapDefinition;
+}
+
+table MocapFrameRecord {
+  monotonic_us:ulong;
+  payload:synapse.topic.MocapFrame;
+}
+
 union RecordPayload {
   SchemaRecord,
   FlightSnapshotRecord,
-  MotorOutputRecord
+  MotorOutputRecord,
+  MocapDefinitionRecord,
+  MocapFrameRecord
 }
 
 table LogRecord {

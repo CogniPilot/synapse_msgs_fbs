@@ -2,26 +2,56 @@
 
 Minimal FlatBuffer schemas for `synapse`.
 
-This repo keeps only the active `synapse` schemas plus a generated minimal ROS
-message mirror for those schemas. It contains only the definitions currently
-required by the `synapse` firmware and log pipeline:
+This repo keeps the active `synapse` FlatBuffers schemas as the source of truth
+plus generated language bindings and a generated ROS 2 interface package. It
+contains only the definitions currently required by the `synapse` firmware and
+log pipeline:
 
 - `fbs/synapse/synapse_topics.fbs`
+- `fbs/synapse/synapse_optical_flow.fbs`
+- `fbs/synapse/synapse_mocap.fbs`
 - `fbs/synapse/synapse_log.fbs`
 - `fbs/synapse/synapse_sil.fbs`
-- `msg/synapse/msg/*.msg`
+- `ros/synapse_msgs/msg/*.msg`
 
 The scope is deliberately small:
 
 - live topic payloads for diagnostics and tooling
 - self-describing log envelopes for SD-card logging
 - native-sim SITL input payloads
-- no legacy ROS package mirror
+- ROS 2 interfaces are generated adapters, not the canonical schema
 
-Regenerate the ROS `.msg` files from the FlatBuffer schemas with:
+## Language Bindings
+
+The `fbs/synapse` schemas are the source of truth. Generated language bindings
+are packaged separately:
+
+- `rust/`: Cargo library crate exposing generated FlatBuffers bindings.
+- `python/`: pip-installable package exposing generated Python bindings.
+- `ros/synapse_msgs/`: generated ROS 2 interface package.
+
+Use the Rust bindings from another crate with:
+
+```toml
+synapse_msgs_fbs = { path = "../synapse_msgs_fbs/rust" }
+```
+
+Install the Python bindings locally with:
 
 ```sh
-python3 convert_fbs.py fbs/synapse --output msg --clean
+pip install ./python
+```
+
+Build the generated ROS 2 interface package from a ROS workspace with:
+
+```sh
+colcon build --base-paths src/synapse_msgs_fbs/ros --packages-select synapse_msgs
+```
+
+Regenerate all checked-in bindings from the FlatBuffer schemas with:
+
+```sh
+./scripts/generate_bindings.sh
 ```
 
 FlatBuffer unions are emitted as discriminated ROS messages with a `type`

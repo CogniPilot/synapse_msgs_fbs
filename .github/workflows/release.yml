@@ -1,0 +1,65 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - "v*.*.*"
+
+permissions:
+  contents: read
+  id-token: write
+
+jobs:
+  publish:
+    name: Publish Packages
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - uses: ros-tooling/setup-ros@v0.7
+        with:
+          required-ros-distributions: jazzy
+      - name: Validate tag and package versions
+        run: |
+          tag_version="${GITHUB_REF_NAME#v}"
+          rust_version="$(
+            cargo metadata --no-deps --manifest-path rust/Cargo.toml --format-version 1 \
+              | python -c 'import json, sys; print(json.load(sys.stdin)["packages"][0]["version"])'
+          )"
+          python_version="$(
+            python -c 'import pathlib, tomllib; print(tomllib.loads(pathlib.Path("python/pyproject.toml").read_text())["project"]["version"])'
+          )"
+
+          test "${rust_version}" = "${tag_version}"
+          test "${python_version}" = "${tag_version}"
+      - name: Regenerate bindings
+        run: ./scripts/generate_bindings.sh
+      - name: Check generated files are current
+        run: |
+          git diff --exit-code
+          test -z "$(git status --porcelain)"
+      - name: Build ROS interface package
+        run: |
+          source /opt/ros/jazzy/setup.bash
+          colcon --log-base /tmp/synapse-msgs-fbs-colcon/log build \
+            --base-paths ros \
+            --packages-select synapse_msgs \
+            --build-base /tmp/synapse-msgs-fbs-colcon/build \
+            --install-base /tmp/synapse-msgs-fbs-colcon/install
+      - name: Test Rust package
+        run: cargo test --manifest-path rust/Cargo.toml
+      - name: Build Python package
+        run: |
+          python -m pip install --upgrade pip build
+          python -m build python
+      - name: Publish Rust package to crates.io
+        env:
+          CARGO_REGISTRY_TOKEN: ${{ secrets.CARGO_REGISTRY_TOKEN }}
+        run: cargo publish --manifest-path rust/Cargo.toml --token "${CARGO_REGISTRY_TOKEN}"
+      - name: Publish Python package to PyPI
+        uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          packages-dir: python/dist
